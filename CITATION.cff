@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+message: "If you use this repository in your work, please cite it as below."
+type: software
+title: "Causal Inference in Oncology: TCGA Pan-Cancer Atlas"
+abstract: >
+  A self-contained tutorial repository demonstrating seven causal inference
+  and survival analysis methods — Kaplan-Meier, Cox proportional hazards,
+  propensity score matching, inverse probability weighting, difference-in-
+  differences, mediation analysis, instrumental variables, and sensitivity
+  analysis — applied to real clinical data from the TCGA Pan-Cancer Atlas 2018
+  (6,568 patients, 19 cancer types).
+authors:
+  - alias: zhuy16
+    affiliation: "GitHub"
+repository-code: "https://github.com/zhuy16/causal_inference_multiomics"
+license: MIT
+version: "1.0.0"
+date-released: "2026-04-30"
+keywords:
+  - causal inference
+  - survival analysis
+  - propensity score matching
+  - inverse probability weighting
+  - mediation analysis
+  - instrumental variables
+  - difference-in-differences
+  - TCGA
+  - oncology
+  - reproducible research
+references:
+  - type: article
+    authors:
+      - family-names: Hoadley
+        given-names: "Katherine A."
+    title: >
+      Cell-of-Origin Patterns Dominate the Molecular Classification of
+      10,000 Tumors from 33 Types of Cancer
+    journal: Cell
+    volume: 173
+    issue: 2
+    pages: "291-304"
+    year: 2018
+    doi: "10.1016/j.cell.2018.03.022"
