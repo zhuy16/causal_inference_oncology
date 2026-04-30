@@ -38,10 +38,11 @@ Full data setup details → [`docs/data_guide.md`](docs/data_guide.md)
 
 ---
 
-## The Six Notebooks
+## The Notebooks
 
 | # | Method | Question answered | Key figure |
 |---|--------|-------------------|------------|
+| 00 | Survival Analysis Primer | What does the raw survival data look like — and why is naive comparison biased? | `00_km_curves.png` |
 | 01 | DAG & Causal Assumptions | Which variables must we adjust for — and which must we not? | `01_causal_dag.png` |
 | 02 | Propensity Score Matching | What is the causal effect of chemo after removing measured confounding? | `02_love_plot.png` |
 | 03 | Difference-in-Differences | Does a treatment guideline change confirm the PSM finding? | `03_event_study.png` |
