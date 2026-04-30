@@ -1,0 +1,33 @@
+# Raw data — not redistributable (rebuild via fetch_lfs_clinical.py)
+data/raw/
+
+# Derived/cached datasets — rebuild via build_real_dataset.py
+data/processed/*.parquet
+data/processed/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Conda / virtualenv
+.env
+.venv
+env/
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# IDE
+.vscode/
+.idea/
