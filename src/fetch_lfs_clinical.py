@@ -2,8 +2,8 @@
 Download real TCGA clinical files from cBioPortal datahub LFS storage.
 Replaces LFS pointer stubs with the actual TSV content.
 
-Usage:
-    python fetch_lfs_clinical.py --datahub /path/to/datahub/public
+Usage (run from repo root):
+    python src/fetch_lfs_clinical.py --datahub /path/to/datahub/public
 
 The --datahub argument should point to the `public/` subdirectory inside
 your local clone of https://github.com/cBioPortal/datahub
@@ -31,7 +31,7 @@ if args.datahub:
     DATAHUB_DIR = args.datahub
 else:
     # Auto-detect: look for datahub/public as a sibling of this repo
-    repo_root    = os.path.dirname(os.path.abspath(__file__))
+    repo_root    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     sibling_path = os.path.join(os.path.dirname(repo_root), 'datahub', 'public')
     if os.path.isdir(sibling_path):
         DATAHUB_DIR = sibling_path
@@ -100,4 +100,4 @@ for fpath, (oid, size) in pointers.items():
     ok += 1
 
 print(f'\nDownloaded {ok}/{len(pointers)} files.')
-print('Run build_real_dataset.py next to build the parquet cache.')
+print('Run src/build_real_dataset.py next to build the parquet cache.')

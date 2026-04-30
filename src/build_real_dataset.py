@@ -42,10 +42,9 @@ Conversion steps
 
 Result: 6,568 patients across 19 cancer types.
 
-Usage
------
-    python build_real_dataset.py
-    python build_real_dataset.py --datahub /path/to/datahub/public
+Usage (run from repo root):
+    python src/build_real_dataset.py
+    python src/build_real_dataset.py --datahub /path/to/datahub/public
 
 If --datahub is omitted, the script auto-detects a datahub/public sibling
 directory next to this repo.
@@ -61,7 +60,7 @@ parser.add_argument('--datahub', default=None,
                     help='Path to datahub/public directory')
 args = parser.parse_args()
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 if args.datahub:
     DATA_DIR = args.datahub

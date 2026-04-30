@@ -46,7 +46,7 @@ TMB (mutations per megabase) is stored in the mutation files, not the clinical f
 
 ```bash
 # 1. Download mutation data for specific cancer types of interest
-# Edit fetch_lfs_clinical.py: change 'data_clinical_patient.txt' to 'data_mutations.txt'
+# Edit src/fetch_lfs_clinical.py: change 'data_clinical_patient.txt' to 'data_mutations.txt'
 
 # 2. Count mutations per patient
 python3 -c "
@@ -71,12 +71,12 @@ Note: mutation files are large (~50–500 MB each). Use sparse download for only
 ### Full rebuild from real TCGA files:
 ```bash
 # Download real clinical TSV files via LFS
-python fetch_lfs_clinical.py
+python src/fetch_lfs_clinical.py
 # or, if datahub is not a sibling directory:
-python fetch_lfs_clinical.py --datahub /your/path/to/datahub/public
+python src/fetch_lfs_clinical.py --datahub /your/path/to/datahub/public
 
 # Build the analysis parquet
-python build_real_dataset.py
+python src/build_real_dataset.py
 
 # Clear derived caches and re-run all notebooks
 rm -f data/processed/matched_cohort.parquet data/processed/sensitivity_summary.csv
@@ -86,7 +86,7 @@ jupyter nbconvert --to notebook --execute --inplace \
 
 ### Rebuild with synthetic data (no internet required):
 ```bash
-python generate_synthetic_data.py
+python src/generate_synthetic_data.py
 # Generates 8,000 synthetic patients with realistic confounding structure
 ```
 
@@ -94,7 +94,7 @@ python generate_synthetic_data.py
 ```bash
 # Example: rebuild only NB04 (mediation analysis)
 rm -f data/processed/analysis_dataset.parquet
-python build_real_dataset.py
+python src/build_real_dataset.py
 jupyter nbconvert --to notebook --execute --inplace \
     --ExecutePreprocessor.timeout=600 notebooks/04_mediation_analysis.ipynb
 ```
@@ -107,7 +107,7 @@ jupyter nbconvert --to notebook --execute --inplace \
 data/
 ├── README.md                           # This file's companion for variable definitions
 ├── raw/
-│   └── (clinical TSV files downloaded by fetch_lfs_clinical.py)
+│   └── (clinical TSV files downloaded by src/fetch_lfs_clinical.py)
 └── processed/
     ├── analysis_dataset.parquet        # 6,568 rows × 7 cols — main analysis input
     ├── matched_cohort.parquet          # PSM output from NB02 (treated + matched controls)

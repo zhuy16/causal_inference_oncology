@@ -10,7 +10,7 @@ import json
 import os
 import glob
 
-BASE    = os.path.dirname(os.path.abspath(__file__))
+BASE    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NB_DIR  = os.path.join(BASE, 'notebooks')
 
 # ── replacement for the else-branch that tries the 403 S3 URL ──────────────
@@ -48,10 +48,10 @@ else:
     raise FileNotFoundError(
         "analysis_dataset.parquet not found.\\n"
         "Run the setup scripts from the repo root first:\\n"
-        "  python fetch_lfs_clinical.py   # download real TCGA files\\n"
-        "  python build_real_dataset.py   # build the parquet cache\\n"
+        "  python src/fetch_lfs_clinical.py   # download real TCGA files\\n"
+        "  python src/build_real_dataset.py   # build the parquet cache\\n"
         "Or for offline use:\\n"
-        "  python generate_synthetic_data.py"
+        "  python src/generate_synthetic_data.py"
     )"""
 
 # ── provenance comment to prepend to every data-loading cell ───────────────

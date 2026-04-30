@@ -30,10 +30,10 @@ git checkout
 cd ../causal_inference_multiomics
 
 # 2. Resolve LFS pointers → download actual file content
-python fetch_lfs_clinical.py           # auto-detects ../datahub/public
+python src/fetch_lfs_clinical.py       # auto-detects ../datahub/public
 
 # 3. Build the analysis parquet
-python build_real_dataset.py
+python src/build_real_dataset.py
 ```
 
 After these steps, `data/processed/analysis_dataset.parquet` contains the analysis-ready dataset.

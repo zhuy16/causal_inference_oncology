@@ -2,11 +2,11 @@
 Generate a synthetic TCGA-like dataset and save it to
 data/processed/analysis_dataset.parquet.
 
-Usage (offline / no real data available):
-    python generate_synthetic_data.py
+Usage (run from repo root, offline / no real data available):
+    python src/generate_synthetic_data.py
 
 This is a FALLBACK option. If real TCGA clinical files are available,
-use fetch_lfs_clinical.py + build_real_dataset.py instead to get real data.
+use src/fetch_lfs_clinical.py + src/build_real_dataset.py instead to get real data.
 
 The synthetic dataset (n=8,000) has:
 - Realistic age/stage/cancer-type distributions
@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import os
 
-PROC_DIR = os.path.join(os.path.dirname(__file__), 'data', 'processed')
+PROC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'processed')
 os.makedirs(PROC_DIR, exist_ok=True)
 
 rng = np.random.default_rng(42)

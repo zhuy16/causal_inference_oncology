@@ -9,7 +9,7 @@ import json
 import glob
 import os
 
-BASE = os.path.dirname(__file__)
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NB_DIR = os.path.join(BASE, 'notebooks')
 REAL_DATA_GLOB = os.path.join(BASE, 'data', 'raw', 'datahub_sparse', 'public',
                                '*pan_can_atlas_2018', 'data_clinical_patient.txt')

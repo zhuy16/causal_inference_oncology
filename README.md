@@ -22,17 +22,17 @@ git clone --no-checkout --depth 1 --filter=blob:none \
 cd ../datahub && git sparse-checkout init --cone
 git sparse-checkout set $(git ls-tree HEAD public/ | grep pan_can_atlas | awk '{print $4}' | tr '\n' ' ')
 git checkout && cd ../causal_inference_multiomics
-python fetch_lfs_clinical.py && python build_real_dataset.py
+python src/fetch_lfs_clinical.py && python src/build_real_dataset.py
 
 # 2b. Offline alternative
-python generate_synthetic_data.py
+python src/generate_synthetic_data.py
 
 # 3. Open notebooks
 jupyter lab notebooks/
 ```
 
 > If the datahub clone is not a sibling directory:
-> `python fetch_lfs_clinical.py --datahub /your/path/to/datahub/public`
+> `python src/fetch_lfs_clinical.py --datahub /your/path/to/datahub/public`
 
 Full data setup details → [`docs/data_guide.md`](docs/data_guide.md)
 
@@ -85,9 +85,10 @@ causal_inference_multiomics/
 ├── results/figures/    # 16 generated figures
 ├── docs/               # concepts, data guide, figures guide
 ├── data/processed/     # parquet cache (gitignored — rebuild locally)
-├── fetch_lfs_clinical.py
-├── build_real_dataset.py
-├── generate_synthetic_data.py
+├── src/
+│   ├── fetch_lfs_clinical.py
+│   ├── build_real_dataset.py
+│   └── generate_synthetic_data.py
 ├── environment.yml
 └── Dockerfile
 ```
