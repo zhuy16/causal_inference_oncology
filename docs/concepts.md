@@ -4,6 +4,54 @@ This document explains the core ideas behind each method in the repo, with enoug
 
 ---
 
+## 0. Survival Analysis Fundamentals
+
+Before applying causal inference methods, it is important to understand the outcome we are modelling: **time-to-event data** (overall survival).
+
+### Why ordinary regression is insufficient for survival data:
+Patients who are still alive at the end of the study are **censored** — we know they survived *at least* t months, but not how long they would ultimately live. Ignoring censoring (e.g., treating them as deaths) biases estimates downward; dropping them biases estimates upward. Survival methods handle censoring correctly.
+
+### Kaplan-Meier Estimator:
+The non-parametric estimate of the survival function S(t) = P(T > t):
+
+$$\hat{S}(t) = \prod_{t_i \leq t} \left(1 - \frac{d_i}{n_i}\right)$$
+
+where `d_i` = events at time `t_i`, `n_i` = patients at risk. KM curves make no distributional assumption and handle censoring exactly.
+
+### Log-Rank Test:
+Compares two KM curves under H₀: identical survival distributions. It is weighted toward late events (proportional hazards weighting). p-value interpretation is standard — but note that with large samples, even tiny differences become significant; always inspect the curves themselves.
+
+### Cox Proportional Hazards Model:
+Models the hazard (instantaneous event rate) as:
+
+```
+h(t | X) = h₀(t) × exp(β₁X₁ + β₂X₂ + ...)
+```
+
+- `h₀(t)`: unspecified baseline hazard (semi-parametric — no distributional assumption)
+- `exp(βᵢ)`: **hazard ratio** for covariate Xᵢ — the multiplicative change in hazard per unit increase
+- HR > 1: higher risk (worse survival); HR < 1: lower risk (better survival)
+- **Proportional hazards assumption**: the ratio of hazards between any two patients is constant over time
+
+### C-index (Concordance Index):
+Measures model discrimination — how well predicted risk scores rank patients by actual survival order:
+
+> *Of all pairs where one patient died before the other, in what fraction did the model give the patient who died first a higher predicted risk?*
+
+| C-index | Interpretation |
+|---------|----------------|
+| 0.5 | Random — no predictive value |
+| 0.6–0.7 | Moderate discrimination |
+| 0.7–0.8 | Good discrimination |
+| > 0.8 | Excellent discrimination |
+
+The C-index is the survival analogue of AUC-ROC. Adding Stage and Age to a chemo-only Cox model should raise C from ~0.53 to ~0.70, confirming that these variables carry genuine prognostic information.
+
+### Why naive KM comparison is biased (indication bias):
+Stage IV patients are both more likely to receive chemotherapy *and* more likely to die. A naive KM comparison of chemo vs no-chemo conflates treatment assignment with disease severity. The chemo group looks worse — not because chemo is harmful, but because it was disproportionately given to sicker patients. This is the entire motivation for the causal inference methods in NB01–06.
+
+---
+
 ## 1. The Fundamental Problem of Causal Inference
 
 The key challenge: **we can never observe both potential outcomes for the same person at the same time.**
@@ -81,6 +129,30 @@ The **propensity score** is `e(X) = P(A=1 | X)` — the probability of treatment
 - SMD before matching: measures imbalance due to confounding
 - SMD after matching: measures residual imbalance — should be < 0.1 for all variables
 - If any variable has SMD > 0.1 after matching, the matched comparison is biased for that dimension
+
+### Inverse Probability Weighting (IPTW):
+
+IPTW is an alternative to PSM that *reweights* the full cohort rather than discarding unmatched patients.
+
+Each patient receives a **stabilized weight**:
+
+$$w_i^{\text{stab}} = \frac{T_i \cdot \hat{P}(T=1)}{\hat{e}(X_i)} + \frac{(1-T_i) \cdot \hat{P}(T=0)}{1 - \hat{e}(X_i)}$$
+
+These weights create a *pseudo-population* where treatment is independent of confounders — mimicking a randomised trial.
+
+**Hajek estimator** for the weighted ATE:
+$$\hat{\tau}_{\text{IPW}} = \frac{\sum_i w_i T_i Y_i}{\sum_i w_i T_i} - \frac{\sum_i w_i (1-T_i) Y_i}{\sum_i w_i (1-T_i)}$$
+
+**Trimming**: Extreme weights (near 0 or ∞, from near-zero or near-one PS) are trimmed at the 1st/99th percentile to reduce variance at the cost of slight bias.
+
+| | PSM | IPTW |
+|-|-----|------|
+| Sample | Matched pairs only (some discarded) | Full cohort retained |
+| Balance | Exact within matched pairs | Approximate across weighted sample |
+| Efficiency | Lower (discards patients) | Higher (uses all data) |
+| Sensitivity to PS model | Moderate | High (extreme weights amplify misspecification) |
+
+If PSM ATE ≈ IPTW ATE, this cross-validation strengthens confidence in the result. Large disagreement indicates PS model sensitivity or positivity violations.
 
 ---
 

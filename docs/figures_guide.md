@@ -4,6 +4,89 @@ All figures are saved in `results/figures/`. This guide explains what each figur
 
 ---
 
+## Notebook 00 — Survival Analysis Primer
+
+### `00_data_overview.png`
+**What it shows**: Three-panel overview — OS distribution histogram, event (death) rate by stage, patient counts per cancer type.
+
+**How to read it**:
+- **Left**: OS distribution — right-skewed, many patients with short follow-up (not necessarily dead; could be recently enrolled)
+- **Middle**: Event rate by stage — should show a clear gradient: Stage I lowest mortality, Stage IV highest. This is the visual proof that stage is a strong confounder
+- **Right**: Patient counts — shows which cancer types dominate the cohort (BRCA, LGG, KIRC are typically largest)
+
+**What to note**: The steep event rate gradient across stages is the empirical foundation for the entire analysis. Any method that ignores stage will be heavily confounded.
+
+---
+
+### `00_km_curves.png`
+**What it shows**: Two KM panels — left: naive chemo vs no-chemo comparison; right: KM by stage.
+
+**How to read the left panel**:
+- The naive chemo group will typically show *worse* or similar survival to no-chemo
+- This is **indication bias** — the red warning box in the plot flags it explicitly
+- Log-rank p-value: significant difference, but the direction is misleading
+
+**How to read the right panel**:
+- Four curves for Stage I–IV, clearly separated
+- This is what the confounder *looks like*: a 30–40 month survival gap between Stage I and IV
+- Any analysis that doesn’t stratify by stage is effectively mixing these four populations
+
+**Key takeaway**: The left panel shows the wrong answer (naive); the right panel explains why it’s wrong (stage confounding).
+
+---
+
+### `00_km_by_cancer_type.png`
+**What it shows**: 2×4 grid of individual KM curves for the 8 most common cancer types.
+
+**How to read it**:
+- Each panel = one cancer type, with n and median survival annotated
+- Dashed horizontal line at S(t) = 0.5 shows where the median falls
+- Wide confidence bands = small sample or high censoring
+
+**What to note**: Enormous heterogeneity across cancer types. MESO (mesothelioma) and GBM (glioblastoma) have very poor prognosis; KIRC (kidney) and LGG (brain low-grade glioma) have much better outcomes. Pooling all cancer types without adjustment absorbs this variation as noise.
+
+---
+
+### `00_cox_comparison.png`
+**What it shows**: Two side-by-side forest plots — unadjusted Cox (CHEMO only) vs adjusted Cox (CHEMO + AGE + STAGE).
+
+**How to read it**:
+- Each bar = hazard ratio with 95% CI; dashed line at HR=1
+- Red bars = HR > 1 (increased hazard, worse survival); blue bars = HR < 1 (protective)
+- **Unadjusted**: CHEMO HR > 1 (appears harmful) — indication bias
+- **Adjusted**: CHEMO HR ≈ 1 (null after adjustment), while STAGE HR ≈ 1.6 (strong prognostic effect)
+
+**Key insight**: The CHEMO coefficient flips from harmful to null once stage is controlled. This empirically demonstrates confounding and motivates the causal inference workflow.
+
+---
+
+### `00_cindex.png`
+**What it shows**: Left — bar chart comparing C-index for unadjusted vs adjusted Cox model; right — summary table.
+
+**How to read it**:
+- **Unadjusted C ≈ 0.53**: A model with only CHEMO barely beats random. Chemo alone is not a good prognostic variable — because it’s assigned to the sickest patients
+- **Adjusted C ≈ 0.69**: Adding Stage + Age gives good discrimination. These variables genuinely predict prognosis
+- Reference lines at 0.5 (random) and 0.7 (good) provide context
+
+**Why this matters**: C-index improvement from ~0.53 to ~0.69 quantifies the prognostic value of Stage and Age. These are not just statistical controls — they are the dominant drivers of survival in this dataset.
+
+---
+
+### `00_forest_plot.png`
+**What it shows**: Per-cancer-type forest plot of adjusted Cox HRs for chemotherapy.
+
+**How to read it**:
+- Each row = one cancer type; point = HR, horizontal line = 95% CI; dashed line at HR=1
+- Starred points (*) = p < 0.05; circles = non-significant
+- Log scale on x-axis
+- Sorted by HR (lowest at top)
+
+**Good result**: Most cancer types cluster near HR=1 after adjustment, with wide CIs reflecting small per-type sample sizes. A few types may show significant beneficial or harmful associations — these are candidates for subgroup analysis.
+
+**Note**: Per-type estimates are noisy (n=30–300 per type). The forest plot is exploratory, not confirmatory. Ridge penalisation (penalizer=0.1) is applied to stabilise estimates.
+
+---
+
 ## Notebook 01 — DAG & Assumptions
 
 > **These figures do not use real TCGA data and will not change when the dataset is rebuilt.** Notebook 01 is a *conceptual* notebook. The DAG is a theoretical construct; the bias demonstration uses fully simulated data with a hardcoded true ATE (`TRUE_ATE = 4.0`). This is by design — you can only prove that a method recovers the truth if you set the truth yourself. Real data has no ground truth to compare against.
@@ -102,6 +185,28 @@ All figures are saved in `results/figures/`. This guide explains what each figur
 - If PSM ATE > Naive ATE: indication bias was suppressing the true benefit (sicker patients getting chemo)
 
 **Key interpretation**: The direction of the difference between naive and PSM estimates confirms the presence of indication bias and its direction.
+
+---
+
+### `02_ipw_comparison.png`
+**What it shows**: Left — three-method Love plot (Unweighted vs PSM vs IPTW); Right — three-bar ATE comparison (Naive / PSM / IPTW) with bootstrap CIs.
+
+**How to read the Love plot**:
+- Three symbols per covariate: red circle (unweighted), green diamond (PSM), blue square (IPTW)
+- Both PSM and IPTW should move all covariates left of the 0.1 threshold
+- If one method achieves better balance than the other, it is preferred for that variable
+
+**How to read the ATE bars**:
+- All three estimates should show consistent direction (if the effect is real)
+- **Naive**: confounded, typically shows chemo as harmful or neutral
+- **PSM** and **IPTW**: both adjusted; should be close to each other
+- Error bars = bootstrap 95% CI (1000 draws, seed 42)
+
+**Interpreting PSM vs IPTW agreement**:
+- Close agreement: PS model is well-specified; result is robust to the choice of weighting method
+- Large disagreement: positivity violations (some patients have extreme PS near 0 or 1) or PS model misspecification — investigate further
+
+**Regulatory context**: FDA RWE guidance recommends reporting both PS matching and weighting estimates as a sensitivity check. Consistency across methods is a key credibility criterion.
 
 ---
 
