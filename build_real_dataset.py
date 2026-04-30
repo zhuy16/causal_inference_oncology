@@ -2,7 +2,48 @@
 Build analysis_dataset.parquet from the real TCGA Pan-Cancer Atlas 2018
 clinical files.
 
-Usage:
+Data source
+-----------
+cBioPortal datahub (GitHub):
+  https://github.com/cBioPortal/datahub/tree/master/public
+
+One file is consumed per cancer type:
+  datahub/public/<cancer>_tcga_pan_can_atlas_2018/data_clinical_patient.txt
+
+Example (thyroid carcinoma):
+  https://github.com/cBioPortal/datahub/tree/master/public/thca_tcga_pan_can_atlas_2018
+
+Files are Git LFS objects; run fetch_lfs_clinical.py first to resolve pointers.
+
+Citation
+--------
+Hoadley KA et al. (2018). Cell-of-Origin Patterns Dominate the Molecular
+Classification of 10,000 Tumors from 33 Types of Cancer.
+Cell 173(2):291-304. https://doi.org/10.1016/j.cell.2018.03.022
+
+Conversion steps
+----------------
+1. Glob all data_clinical_patient.txt files under *pan_can_atlas_2018/
+2. Parse each with pd.read_csv(sep='\\t', comment='#') — skips 5-line # header
+3. Tag rows with cancer type abbreviation from directory name (e.g. THCA)
+4. Concatenate all 33 cancer types (~10,000+ rows)
+5. Normalise columns:
+     OS_MONTHS                     -> float (errors -> NaN)
+     OS_STATUS "1:DECEASED"        -> 1, else 0
+     AGE / DIAGNOSIS_AGE           -> float
+     AJCC_PATHOLOGIC_TUMOR_STAGE   -> int 1-4 (Roman numeral mapping)
+     TMB_NONSYNONYMOUS or
+       MUTATION_COUNT / 38         -> TMB in mut/Mb (38 Mb ~= exome size)
+6. Derive chemotherapy proxy (TCGA does not uniformly record treatment):
+     logit P(Chemo) = -1.5 + 0.55*Stage - 0.015*(Age-60)
+     Bernoulli draw with seed 42 creates realistic indication bias.
+7. Drop rows missing OS_MONTHS, OS_EVENT, AGE, STAGE, CHEMO or OS_MONTHS <= 0
+8. Save to data/processed/analysis_dataset.parquet (snappy compression)
+
+Result: 6,568 patients across 19 cancer types.
+
+Usage
+-----
     python build_real_dataset.py
     python build_real_dataset.py --datahub /path/to/datahub/public
 

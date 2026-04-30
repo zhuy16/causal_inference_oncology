@@ -4,51 +4,58 @@
 
 **Dataset**: TCGA Pan-Cancer Atlas 2018  
 **Provider**: cBioPortal for Cancer Genomics  
-**URL**: https://cbioportal-datahub.s3.amazonaws.com/tcga_pan_can_atlas_2018.tar.gz  
-**Size**: ~2 GB compressed, ~10 GB extracted  
-**License**: TCGA data is publicly available under dbGaP controlled-access and open-tier tiers. Clinical data used here is open-tier.
+**Repository**: https://github.com/cBioPortal/datahub/tree/master/public  
+**Example study folder**: https://github.com/cBioPortal/datahub/tree/master/public/thca_tcga_pan_can_atlas_2018  
+**File used per study**: `data_clinical_patient.txt` (one per cancer type, 33 total)  
+**License**: TCGA clinical data is open-tier (no dbGaP access required). Files are distributed under the cBioPortal datahub license.
 
 ### Citation
 
 Hoadley KA, et al. (2018). Cell-of-Origin Patterns Dominate the Molecular Classification of 10,000 Tumors from 33 Types of Cancer. *Cell*, 173(2), 291–304. https://doi.org/10.1016/j.cell.2018.03.022
 
+CBioPortal datahub: https://github.com/cBioPortal/datahub
+
 ## Download Instructions
 
-### Automatic (via notebooks)
-The data is downloaded automatically the first time notebook 02 is run. The download and extraction can take 10–30 minutes depending on network speed.
-
-### Manual
+The raw files live in the cBioPortal datahub GitHub repository and are stored via Git LFS. The recommended approach uses a sparse checkout to download only the clinical files (~2 MB total) rather than the full multi-GB repo.
 
 ```bash
-mkdir -p data/raw
-cd data/raw
-wget https://cbioportal-datahub.s3.amazonaws.com/tcga_pan_can_atlas_2018.tar.gz
-tar -xzf tcga_pan_can_atlas_2018.tar.gz
+# 1. Sparse-clone the datahub (clinical files only)
+git clone --no-checkout --depth 1 --filter=blob:none \
+    https://github.com/cBioPortal/datahub.git ../datahub
+cd ../datahub
+git sparse-checkout init --cone
+git sparse-checkout set $(git ls-tree HEAD public/ | grep pan_can_atlas | awk '{print $4}' | tr '\n' ' ')
+git checkout
+cd ../causal_inference_multiomics
+
+# 2. Resolve LFS pointers → download actual file content
+python fetch_lfs_clinical.py           # auto-detects ../datahub/public
+
+# 3. Build the analysis parquet
+python build_real_dataset.py
 ```
 
-Or with curl:
+After these steps, `data/processed/analysis_dataset.parquet` contains the analysis-ready dataset.
 
-```bash
-curl -O https://cbioportal-datahub.s3.amazonaws.com/tcga_pan_can_atlas_2018.tar.gz
-tar -xzf tcga_pan_can_atlas_2018.tar.gz
-```
+## Raw File Structure (per cancer type)
 
-## Expected Directory Structure After Extraction
+Each of the 33 cancer types has its own subdirectory in `datahub/public/`:
 
 ```
-data/raw/tcga_pan_can_atlas_2018/
+datahub/public/
 ├── acc_tcga_pan_can_atlas_2018/
-│   ├── data_clinical_patient.txt
+│   ├── data_clinical_patient.txt   <- used by build_real_dataset.py
 │   ├── data_clinical_sample.txt
+│   ├── data_mutations.txt          <- real TMB (not used by default)
 │   └── meta_*.txt
 ├── blca_tcga_pan_can_atlas_2018/
-│   ├── data_clinical_patient.txt
-│   └── ...
 ├── ... (33 cancer types total)
-└── read_tcga_pan_can_atlas_2018/
+└── thca_tcga_pan_can_atlas_2018/
+    └── data_clinical_patient.txt   <- example: https://github.com/cBioPortal/datahub/tree/master/public/thca_tcga_pan_can_atlas_2018
 ```
 
-Each cancer type folder follows the naming convention `{cancer_type}_tcga_pan_can_atlas_2018/`.
+Only `data_clinical_patient.txt` is used. Each file has a 5-row comment header (lines starting with `#`) followed by a tab-separated table.
 
 ## Key Variables
 
@@ -79,6 +86,33 @@ Each cancer type folder follows the naming convention `{cancer_type}_tcga_pan_ca
 | `CANCER_TYPE_DETAILED` | Histological subtype |
 | `SAMPLE_TYPE` | Primary vs. Metastatic |
 | `AJCC_PATHOLOGIC_TUMOR_STAGE` | TNM staging |
+
+## Conversion Pipeline: Raw Files → `analysis_dataset.parquet`
+
+`build_real_dataset.py` performs the following steps:
+
+1. **Glob** all `data_clinical_patient.txt` files matching `*pan_can_atlas_2018/data_clinical_patient.txt`
+2. **Parse** each file with `pd.read_csv(..., sep='\t', comment='#')` — skips the 5-line `#`-prefixed metadata header
+3. **Tag** each row with the cancer type abbreviation extracted from the directory name (e.g. `thca_tcga_pan_can_atlas_2018` → `THCA`)
+4. **Concatenate** all 33 cancer types into a single dataframe (~10,000+ rows)
+5. **Normalise columns:**
+   - `OS_MONTHS` → `float` (coerce errors to NaN)
+   - `OS_STATUS` → binary event flag: `1` if the string starts with `"1:"` (deceased), else `0`
+   - `AGE` / `DIAGNOSIS_AGE` → `float`
+   - `AJCC_PATHOLOGIC_TUMOR_STAGE` → integer 1–4 (Roman numeral mapping: I→1, II→2, III→3, IV→4)
+   - `TMB_NONSYNONYMOUS` or `MUTATION_COUNT/38` → TMB in mut/Mb (38 Mb ≈ exome size)
+6. **Derive chemotherapy proxy** (TCGA does not uniformly record treatment):
+   ```
+   logit P(Chemo) = -1.5 + 0.55 × Stage - 0.015 × (Age - 60)
+   ```
+   This creates realistic indication bias: Stage IV patients have ~60% chemo probability; Stage I patients ~20%.
+   Binary assignment is drawn from Bernoulli(P) with seed 42.
+7. **Filter** to rows with non-missing OS_MONTHS, OS_EVENT, AGE, STAGE, CHEMO and OS_MONTHS > 0
+8. **Save** to `data/processed/analysis_dataset.parquet` (pandas parquet, snappy compression)
+
+The resulting dataset has **6,568 patients** across **19 cancer types** (cancer types with missing stage or OS data are dropped at step 7).
+
+---
 
 ## Variable Construction for Causal Analysis
 
