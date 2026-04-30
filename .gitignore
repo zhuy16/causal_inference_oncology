@@ -15,8 +15,7 @@ dist/
 build/
 .eggs/
 
-# Jupyter — outputs stripped by nbstripout on commit (see .gitattributes)
-# .py mirror files (jupytext) are also tracked for readable diffs
+# Jupyter
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
