@@ -6,7 +6,30 @@
 
 > **Question**: Does chemotherapy causally improve survival — and how much of that benefit is mediated through tumour mutation burden (TMB)?
 
-Six Jupyter notebooks apply complementary causal inference methods to **6,568 real patients** from the TCGA Pan-Cancer Atlas 2018.
+Eight Jupyter notebooks apply complementary causal inference methods to **6,568 real patients** from the TCGA Pan-Cancer Atlas 2018.
+
+---
+
+## At a Glance
+
+### Step 1 — Understand the survival landscape
+
+![KM curves by cancer type and chemo status](results/figures/00_km_curves.png)
+
+Kaplan-Meier survival curves stratified by cancer type and chemotherapy status. Each step-down represents a death event; the shaded band is the 95% confidence interval. The gap between the chemo (red) and no-chemo (blue) curves looks encouraging — but this is a **naive comparison**: sicker, later-stage patients are more likely to receive chemotherapy, so the raw difference is confounded. The rest of the repo exists to answer: *what is the real causal effect after removing that bias?*
+
+---
+
+### Step 2 — Estimate who benefits (and by how much)
+
+![CATE distribution and subgroup heterogeneity](results/figures/07_cate_distribution.png)
+
+Results from a **Causal Forest** (NB07), which estimates a personalised treatment effect for every patient — the Conditional Average Treatment Effect (CATE). Three key findings:
+- **Left panel**: the distribution of individual CATEs spans a wide range; the red line is the average (≈ the ATE from NB02). Some patients sit near or below zero, suggesting little or no benefit.
+- **Middle panel**: mean CATE *increases monotonically with stage* — Stage IV patients gain substantially more survival time from chemo than Stage I patients. This is **effect heterogeneity**: one treatment, very different benefits.
+- **Right panel**: younger patients tend to have larger CATEs, consistent with age-related differences in drug tolerance and tumour biology.
+
+This personalised view is only possible because the earlier notebooks established a credible causal estimate to begin with.
 
 ---
 
@@ -83,7 +106,7 @@ Full variable definitions, limitations, rebuild instructions → [`docs/data_gui
 ```
 causal_inference_multiomics/
 ├── notebooks/          # 01–06 in order
-├── results/figures/    # 16 generated figures
+├── results/figures/    # 20 generated figures
 ├── docs/               # concepts, data guide, figures guide
 ├── data/processed/     # parquet cache (gitignored — rebuild locally)
 ├── src/
