@@ -27,7 +27,7 @@ cd ../datahub
 git sparse-checkout init --cone
 git sparse-checkout set $(git ls-tree HEAD public/ | grep pan_can_atlas | awk '{print $4}' | tr '\n' ' ')
 git checkout
-cd ../causal_inference_multiomics
+cd ../causal_inference_oncology
 
 # 2. Resolve LFS pointers → download actual file content
 python src/fetch_lfs_clinical.py       # auto-detects ../datahub/public

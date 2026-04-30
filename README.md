@@ -57,7 +57,7 @@ git clone --no-checkout --depth 1 --filter=blob:none \
     https://github.com/cBioPortal/datahub.git ../datahub
 cd ../datahub && git sparse-checkout init --cone
 git sparse-checkout set $(git ls-tree HEAD public/ | grep pan_can_atlas | awk '{print $4}' | tr '\n' ' ')
-git checkout && cd ../causal_inference_multiomics
+git checkout && cd ../causal_inference_oncology
 python src/fetch_lfs_clinical.py && python src/build_real_dataset.py
 
 # 2b. Offline alternative
@@ -117,7 +117,7 @@ Full variable definitions, limitations, rebuild instructions → [`docs/data_gui
 ## Repository Structure
 
 ```
-causal_inference_multiomics/
+causal_inference_oncology/
 ├── notebooks/          # 01–06 in order
 ├── results/figures/    # 20 generated figures
 ├── docs/               # concepts, data guide, figures guide
