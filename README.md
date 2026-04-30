@@ -20,7 +20,20 @@ Kaplan-Meier survival curves stratified by cancer type and chemotherapy status. 
 
 ---
 
-### Step 2 — Estimate who benefits (and by how much)
+### Step 2 — Peel back the average: subgroup mediation reveals who actually benefits
+
+![Subgroup mediation: Age Q3 path diagram and full comparison](results/figures/04_subgroup_mediation.png)
+
+The most revealing figure in the repo. **Top**: a mediation path diagram for the Age Q3 subgroup (patients aged ~57–70), showing the three causal paths — chemo → TMB (a-path), TMB → survival (b-path), and the direct/other-pathway effect (c′). **Bottom**: all four subgroups side by side.
+
+Three things stand out:
+- **Full cohort total effect is slightly negative** — not because chemo harms, but because the most advanced patients (who get more chemo) also have worse baseline prognosis. This is **indication bias** in plain sight.
+- **Age Q3 total effect flips to +2.17 months (p = 0.13)** — near-significant with a confidence interval almost entirely positive. The causal forest in Step 3 independently identified this same subgroup as high-benefit, so this is not data dredging.
+- **The a-path (chemo → TMB) is significant in every subgroup** (marked `**`), but the b-path (TMB → survival) is not — the TMB pathway is broken. Chemo's benefit in Age Q3 operates through other mechanisms (direct cytotoxicity, immune activation), not via TMB elevation. The straight blue arrow represents *any* pathway, not a specific one.
+
+---
+
+### Step 3 — Personalised effect estimates for every patient
 
 ![CATE distribution and subgroup heterogeneity](results/figures/07_cate_distribution.png)
 
