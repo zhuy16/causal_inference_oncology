@@ -268,3 +268,37 @@ Run the same analysis across many reasonable analytic choices:
 - Caliper: 0.1, 0.2, 0.3 SD
 
 Plot all estimates. If the vast majority point in the same direction and are statistically significant, the finding is robust to analytic flexibility.
+
+---
+
+## 8. Heterogeneous Treatment Effects (HTE)
+
+All previous methods estimate the **Average Treatment Effect (ATE)** — a single number for the whole population. HTE analysis asks: does the effect vary across subgroups?
+
+### Key concepts:
+- **CATE** (Conditional Average Treatment Effect): `E[Y(1) - Y(0) | X = x]` — the treatment effect as a function of patient characteristics X
+- **Effect modifier**: a variable that *changes the magnitude or direction* of the treatment effect (distinct from a confounder, which biases the estimate)
+- **Interaction term**: in a regression, `Chemo × Stage` tests whether Stage modifies the chemo effect
+
+### Three approaches (in order of complexity):
+
+**1. Stratified analysis**: fit the model separately within each subgroup (Stage I, II, III, IV) and compare estimates. Simple, interpretable, but loses power in small subgroups.
+
+**2. Interaction term in Cox/regression**: include `Chemo × Stage` as a covariate. The interaction coefficient tests whether the effect differs across stages. Standard, parametric — assumes linearity.
+
+**3. Causal Forest (Wager & Athey, 2018)**:
+- Uses Double Machine Learning to partial out confounders: fit `Ỹ = Y - E[Y|X]` and `T̃ = T - E[T|X]`
+- Grows a forest of trees that search for regions of X where T̃ and Ỹ have different correlations (i.e., where the treatment effect differs)
+- Provides per-patient CATE estimates with honest confidence intervals (using sample splitting)
+- **Feature importance** from the forest identifies which variables drive heterogeneity
+
+### The CATE waterfall plot:
+Sort all patients by their estimated CATE. If many patients have CATE < 0, there is a subgroup experiencing harm — a strong signal for treatment targeting.
+
+### Caution:
+- Individual CATEs have wide confidence intervals — they are most useful for *subgroup characterisation*, not individual-level prediction
+- The causal forest assumes the same identification conditions as PSM (no unmeasured confounders)
+- Survival outcomes require special handling (RMST pseudo-observations or weighted estimators) when using continuous-outcome CATE methods
+
+### Clinical application:
+If Stage IV patients benefit 7× more than Stage I, an **enrichment trial design** — enrolling only Stage III–IV — maximises power and reduces unnecessary toxicity in low-benefit patients. This is the precision oncology paradigm.

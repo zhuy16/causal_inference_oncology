@@ -49,6 +49,7 @@ Full data setup details → [`docs/data_guide.md`](docs/data_guide.md)
 | 04 | Mediation Analysis | How much of the benefit operates through TMB? | `04_mediation_analysis.png` |
 | 05 | Instrumental Variables | Does the result hold even against *unmeasured* confounders? | `05_iv_vs_ols.png` |
 | 06 | Sensitivity Analysis | How much hidden bias would overturn the conclusion? | `06_evalue.png` |
+| 07 | Heterogeneous Treatment Effects | Does chemo benefit all patients equally — or only certain subgroups? | `07_cate_distribution.png` |
 
 Read notebooks in order — each builds on the previous.
 Figure-by-figure interpretation → [`docs/figures_guide.md`](docs/figures_guide.md)

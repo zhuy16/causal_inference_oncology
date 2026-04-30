@@ -389,3 +389,75 @@ All figures are saved in `results/figures/`. This guide explains what each figur
 - Numbers in cells = ATE in months
 
 **This answers**: "Are my results a statistical artifact of my specific modeling choices?" If results are consistent across the specification grid, the answer is no.
+
+---
+
+## Notebook 07 — Heterogeneous Treatment Effects
+
+### `07_km_by_stage.png`
+**What it shows**: 2×2 grid of KM curves — chemo vs no-chemo within each of Stage I–IV.
+
+**How to read it**:
+- Each panel = one stage; red = chemo, blue = no chemo
+- The Δ median annotation shows the survival gap in months within that stage
+- Log-rank p-value tests whether the within-stage curves differ
+
+**Good result**: The gap between red and blue curves *grows* from Stage I to Stage IV — visually confirming that Stage is an effect modifier. Stage I may show little or no benefit; Stage IV should show the largest gap.
+
+**Warning sign**: If the gap is similar across all stages, stage is not an effect modifier (but this is unlikely given the biological mechanism).
+
+---
+
+### `07_interaction_cox.png`
+**What it shows**: Left — bar chart of chemo hazard ratios by stage (from the interaction model); Right — forest plot of all interaction model coefficients.
+
+**How to read the HR-by-stage plot**:
+- Each bar = chemo HR at that stage, with 95% CI
+- HR < 1: chemo is protective at that stage; HR > 1: harmful (or insufficient data)
+- If HR decreases monotonically from Stage I to IV: chemo becomes progressively more protective in advanced disease
+
+**How to read the interaction coefficient**:
+- `CHEMO_X_STAGE` coefficient < 0 (HR < 1): the protective effect of chemo *increases* with stage
+- `*` annotation = p < 0.05 significant interaction
+
+---
+
+### `07_cate_distribution.png`
+**What it shows**: Three panels — CATE distribution histogram, mean CATE by stage, mean CATE by age quartile.
+
+**How to read the histogram**:
+- Wide distribution = high heterogeneity; narrow = homogeneous effect
+- Red dashed line = mean (≈ ATE from NB02)
+- Patients left of zero = estimated to be harmed by chemo
+
+**How to read the subgroup bars**:
+- Error bars = 95% CI on the mean CATE within each subgroup
+- Consistent gradient (Stage I < II < III < IV) confirms stage as effect modifier
+- Age quartile plot: if Q4 (oldest) has lower CATE, age modifies the effect (toxicity trade-off)
+
+---
+
+### `07_hte_importance.png`
+**What it shows**: Left — causal forest feature importances; Right — CATE waterfall (all patients sorted by CATE).
+
+**How to read the feature importances**:
+- Importance = how much that variable drives CATE variation across the forest
+- High importance for AGE and STAGE confirms they are the primary effect modifiers
+- High importance for a cancer type dummy = that type responds very differently to chemo
+
+**How to read the waterfall**:
+- Red bars = patients with positive CATE (benefit); blue bars = negative CATE (harm)
+- Sorted left-to-right from lowest to highest CATE
+- The fraction of blue bars indicates the proportion of patients estimated to be harmed
+
+---
+
+### `07_cate_landscape.png`
+**What it shows**: Left — scatter of individual CATEs by stage (with jitter); Right — CATE vs Age scatter with trend line.
+
+**How to read it**:
+- Left: vertical spread within each stage = within-stage heterogeneity (driven by age, cancer type)
+- Right: slope of trend line quantifies the age gradient in treatment benefit
+- Colour in right plot = stage; allows visualising the joint Stage × Age effect
+
+**Key insight**: Both plots together show that HTE is a *multidimensional* phenomenon — patients of the same stage but different ages have different CATEs. The causal forest captures this multi-way interaction; simple stratification cannot.
