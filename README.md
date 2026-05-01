@@ -14,11 +14,17 @@ Eight Jupyter notebooks apply complementary causal inference methods to **6,568 
 
 ## At a Glance
 
-### Step 1 — Understand the overall survival landscape (not age-stratified)
+### Step 1 — Understand the survival landscape and the two key confounders
 
 ![KM curves by cancer type and chemo status](results/figures/00_km_curves.png)
 
-Kaplan-Meier survival curves stratified by cancer type and chemotherapy status. Each step-down represents a death event; the shaded band is the 95% confidence interval. The gap between the chemo (red) and no-chemo (blue) curves looks encouraging — but this is a **naive comparison**: sicker, later-stage patients are more likely to receive chemotherapy, so the raw difference is confounded. This step is an overall cohort view, not the subgroup definition. The rest of the repo exists to answer: *what is the real causal effect after removing that bias?*
+Three Kaplan-Meier panels that introduce the two key confounders before any causal adjustment:
+
+- **Left — Naive KM**: chemo patients (red) survive *worse* than no-chemo patients (blue). This is **indication bias** — sicker, later-stage patients are preferentially given chemotherapy, so the raw gap reflects disease severity, not treatment harm.
+- **Middle — KM by Stage**: Stage I patients (green) survive far longer than Stage IV (red). Stage is the dominant confounder: it drives both who receives chemo and how long they survive.
+- **Right — KM by Age Quartile**: survival decreases monotonically from Q1 (youngest, blue) to Q4 (oldest, purple). Age is a secondary confounder — older patients have worse baseline prognosis and also differ in chemo assignment.
+
+Introducing both confounders here motivates Step 2: after causal adjustment, *which age group actually benefits from chemotherapy?*
 
 ---
 
@@ -26,7 +32,7 @@ Kaplan-Meier survival curves stratified by cancer type and chemotherapy status. 
 
 ![Mean CATE by Age Quartile](results/figures/07_cate_by_age_quartile.png)
 
-A **Causal Forest** (NB07) estimates a personalised treatment effect (CATE) for every patient. We then introduce a new stratification by age quartile (Q1-Q4), independent of Step 1 plotting groups. Slicing by age quartile reveals a clear pattern: **only Q3 patients (~57-70 yrs) show a positive mean causal effect (+0.7 months)**; the youngest (Q1) and oldest (Q4) both have negative estimates.
+A **Causal Forest** (NB07) estimates a personalised treatment effect (CATE) for every patient. After causal adjustment for the confounders shown in Step 1, slicing by age quartile reveals a striking reversal: **only Q3 patients (~57–70 yrs) show a positive mean causal effect (+0.7 months)**; the youngest (Q1) and oldest (Q4) — whose raw KM curves looked better — both have negative estimates.
 
 - **Q1 (youngest)**: disease biology may respond differently; less advanced disease in this cohort
 - **Q3 sweet spot**: old enough for high-risk disease, young enough to tolerate a full chemo dose
@@ -38,7 +44,7 @@ This flags Age Q3 as the subgroup to interrogate further: *why* do they benefit,
 
 ### Step 3 — Is the survival benefit of chemotherapy in the elderly subgroup mediated through TMB?
 
-![Subgroup mediation: Age Q3 path diagram and full comparison](results/figures/04_subgroup_mediation.png)
+![Subgroup mediation: Age Q3 path diagram and full comparison](results/figures/08_subgroup_mediation.png)
 
 Armed with the subgroup identified in Step 2, we re-run mediation analysis restricted to Age Q3. **Top**: mediation path diagram for Age Q3 patients (aged ~57-70). **Bottom**: all four age-quartile subgroups (Q1-Q4) side by side.
 
@@ -89,6 +95,7 @@ Full data setup details → [`docs/data_guide.md`](docs/data_guide.md)
 | 05 | Instrumental Variables | Does the result hold even against *unmeasured* confounders? | `05_iv_vs_ols.png` |
 | 06 | Sensitivity Analysis | How much hidden bias would overturn the conclusion? | `06_evalue.png` |
 | 07 | Heterogeneous Treatment Effects | Does chemo benefit all patients equally — or only certain subgroups? | `07_cate_distribution.png` |
+| 08 | Subgroup Mediation | In the high-benefit subgroup identified by NB07, does TMB mediate the effect? | `08_subgroup_mediation.png` |
 
 Read notebooks in order — each builds on the previous.
 Figure-by-figure interpretation → [`docs/figures_guide.md`](docs/figures_guide.md)
