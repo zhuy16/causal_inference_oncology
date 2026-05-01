@@ -35,7 +35,7 @@ This heterogeneity analysis motivates the next question: *why* do Age Q3 patient
 
 ---
 
-### Step 3 — Why do they benefit? Subgroup mediation reveals the mechanism
+### Step 3 — Is the survival benefit of chemotherapy in the elderly subgroup mediated through TMB?
 
 ![Subgroup mediation: Age Q3 path diagram and full comparison](results/figures/04_subgroup_mediation.png)
 
