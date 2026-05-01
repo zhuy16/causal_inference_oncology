@@ -55,6 +55,8 @@ Three key numbers:
 
 The indirect effect (a×b = −0.176 mo) is negligible relative to the direct effect (c' = +2.342 mo), suggesting most of chemo's benefit in Age Q3 operates through pathways other than TMB — direct cytotoxicity, immune activation, or unmeasured mechanisms. Full subgroup comparison across all four groups is in NB08.
 
+> **Why does Step 2 show +0.7 mo but Step 3 shows +2.166 mo?** These are different estimators. The Causal Forest (Step 2) is trained on all 6,568 patients with regularization and non-parametric residualization — it shrinks noisy individual estimates toward zero, giving a conservative +0.7 mo. The OLS regression (Step 3) runs on only 1,782 Q3 patients without regularization, producing a noisier but larger estimate with wide confidence intervals (BCI: −0.71, 5.24). Both agree on the *direction*: Age Q3 is the only subgroup with a positive benefit. The Causal Forest estimate (+0.7 mo) is the more reliable magnitude.
+
 > ⚠️ **Synthetic TMB disclaimer**: Real TMB values are not available in the TCGA clinical files used here. TMB is simulated from a biologically motivated but artificial model (`shape = 2.5 + 0.8 × CHEMO`). The a-path significance is therefore **built into the simulation by design**, and the b-path result (b ≈ 0) reflects the absence of any TMB→OS link in the data-generating process — not a real biological finding. These results demonstrate the **methodology** only. Conclusions about TMB as a mediator require real mutation burden data.
 
 ---
