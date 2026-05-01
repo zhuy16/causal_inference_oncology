@@ -6,7 +6,7 @@
 
 > **Question**: Does chemotherapy causally improve survival — and how much of that benefit is mediated through tumour mutation burden (TMB)?
 
-Eight Jupyter notebooks apply complementary causal inference methods to **6,568 real patients** from the TCGA Pan-Cancer Atlas 2018.
+Nine Jupyter notebooks apply complementary causal inference methods to **6,568 real patients** from the TCGA Pan-Cancer Atlas 2018.
 
 ![Causal inference vs naive association](docs/causal_illustration.png)
 
@@ -42,16 +42,20 @@ This flags Age Q3 as the subgroup to interrogate further: *why* do they benefit,
 
 ---
 
-### Step 3 — Is the survival benefit of chemotherapy in the elderly subgroup mediated through TMB?
+### Step 3 — Is the survival benefit of chemotherapy in Age Q3 mediated through TMB?
 
-![Subgroup mediation: Age Q3 path diagram and full comparison](results/figures/08_subgroup_mediation.png)
+![Age Q3 mediation path diagram](results/figures/08_ageq3_path_diagram.png)
 
-Armed with the subgroup identified in Step 2, we re-run mediation analysis restricted to Age Q3. **Top**: mediation path diagram for Age Q3 patients (aged ~57-70). **Bottom**: all four age-quartile subgroups (Q1-Q4) side by side.
+Mediation path diagram for the Age Q3 subgroup (n=1,782, age 62–71 yrs), pre-specified by the Causal Forest in Step 2.
 
-Three things stand out:
-- **Full cohort total effect is slightly negative** — not because chemo harms, but because the most advanced patients (who get more chemo) also have worse baseline prognosis. This is **indication bias** in plain sight.
-- **Age Q3 total effect flips to +2.17 months (p = 0.13)** — near-significant, with a confidence interval almost entirely positive. Because the subgroup was pre-specified by the causal forest in Step 2, this is not data dredging.
-- **The a-path (chemo → TMB) is significant in every subgroup** (marked `**`), but the b-path (TMB → survival) is not — the TMB pathway is broken. Chemo's benefit in Age Q3 operates through other mechanisms; the straight blue arrow represents *any* pathway, not a specific one.
+Three key numbers:
+- **a = +0.247 (\*\*\*)** — chemo robustly raises TMB (confirmed pathway)
+- **b = −0.712 (p=0.621)** — TMB→survival association is **not significant**; TMB does not mediate the benefit
+- **Total c = +2.166 mo (p=0.147)** — near-significant total benefit; the BCI [−0.71, 5.24] is mostly positive
+
+The indirect effect (a×b = −0.176 mo) is negligible relative to the direct effect (c' = +2.342 mo), suggesting most of chemo's benefit in Age Q3 operates through pathways other than TMB — direct cytotoxicity, immune activation, or unmeasured mechanisms. Full subgroup comparison across all four groups is in NB08.
+
+> ⚠️ **Synthetic TMB disclaimer**: Real TMB values are not available in the TCGA clinical files used here. TMB is simulated from a biologically motivated but artificial model (`shape = 2.5 + 0.8 × CHEMO`). The a-path significance is therefore **built into the simulation by design**, and the b-path result (b ≈ 0) reflects the absence of any TMB→OS link in the data-generating process — not a real biological finding. These results demonstrate the **methodology** only. Conclusions about TMB as a mediator require real mutation burden data.
 
 ---
 
@@ -66,7 +70,7 @@ git clone --no-checkout --depth 1 --filter=blob:none \
     https://github.com/cBioPortal/datahub.git ../datahub
 cd ../datahub && git sparse-checkout init --cone
 git sparse-checkout set $(git ls-tree HEAD public/ | grep pan_can_atlas | awk '{print $4}' | tr '\n' ' ')
-git checkout && cd ../causal_inference_oncology
+git checkout && cd -
 python src/fetch_lfs_clinical.py && python src/build_real_dataset.py
 
 # 2b. Offline alternative
@@ -95,7 +99,7 @@ Full data setup details → [`docs/data_guide.md`](docs/data_guide.md)
 | 05 | Instrumental Variables | Does the result hold even against *unmeasured* confounders? | `05_iv_vs_ols.png` |
 | 06 | Sensitivity Analysis | How much hidden bias would overturn the conclusion? | `06_evalue.png` |
 | 07 | Heterogeneous Treatment Effects | Does chemo benefit all patients equally — or only certain subgroups? | `07_cate_distribution.png` |
-| 08 | Subgroup Mediation | In the high-benefit subgroup identified by NB07, does TMB mediate the effect? | `08_subgroup_mediation.png` |
+| 08 | Subgroup Mediation | In the high-benefit subgroup identified by NB07, does TMB mediate the effect? | `08_ageq3_path_diagram.png` |
 
 Read notebooks in order — each builds on the previous.
 Figure-by-figure interpretation → [`docs/figures_guide.md`](docs/figures_guide.md)
@@ -128,8 +132,8 @@ Full variable definitions, limitations, rebuild instructions → [`docs/data_gui
 
 ```
 causal_inference_oncology/
-├── notebooks/          # 01–06 in order
-├── results/figures/    # 20 generated figures
+├── notebooks/          # 00–08 in order
+├── results/figures/    # 34 generated figures
 ├── docs/               # concepts, data guide, figures guide
 ├── data/processed/     # parquet cache (gitignored — rebuild locally)
 ├── src/
