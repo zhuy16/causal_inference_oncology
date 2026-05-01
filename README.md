@@ -8,6 +8,8 @@
 
 Eight Jupyter notebooks apply complementary causal inference methods to **6,568 real patients** from the TCGA Pan-Cancer Atlas 2018.
 
+![Causal inference vs naive association](docs/causal_illustration.png)
+
 ---
 
 ## At a Glance
