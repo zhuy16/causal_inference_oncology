@@ -14,24 +14,25 @@ Eight Jupyter notebooks apply complementary causal inference methods to **6,568 
 
 ## At a Glance
 
-### Step 1 — Understand the survival landscape
+### Step 1 — Understand the overall survival landscape (not age-stratified)
 
 ![KM curves by cancer type and chemo status](results/figures/00_km_curves.png)
 
-Kaplan-Meier survival curves stratified by cancer type and chemotherapy status. Each step-down represents a death event; the shaded band is the 95% confidence interval. The gap between the chemo (red) and no-chemo (blue) curves looks encouraging — but this is a **naive comparison**: sicker, later-stage patients are more likely to receive chemotherapy, so the raw difference is confounded. The rest of the repo exists to answer: *what is the real causal effect after removing that bias?*
+Kaplan-Meier survival curves stratified by cancer type and chemotherapy status. Each step-down represents a death event; the shaded band is the 95% confidence interval. The gap between the chemo (red) and no-chemo (blue) curves looks encouraging — but this is a **naive comparison**: sicker, later-stage patients are more likely to receive chemotherapy, so the raw difference is confounded. This step is an overall cohort view, not the subgroup definition. The rest of the repo exists to answer: *what is the real causal effect after removing that bias?*
 
 ---
 
-### Step 2 — Who benefits? Heterogeneous treatment effects
+### Step 2 — Who benefits? Causal Forest identifies Age Q3 as the high-benefit subgroup
 
-![CATE distribution and subgroup heterogeneity](results/figures/07_cate_distribution.png)
+![Mean CATE by Age Quartile](results/figures/07_cate_by_age_quartile.png)
 
-Results from a **Causal Forest** (NB07), which estimates a personalised treatment effect for every patient — the Conditional Average Treatment Effect (CATE). Three key findings:
-- **Left panel**: the distribution of individual CATEs spans a wide range; the red line is the average (≈ the ATE from NB02). Some patients sit near or below zero, suggesting little or no benefit.
-- **Middle panel**: mean CATE *increases monotonically with stage* — Stage IV patients gain substantially more survival time from chemo than Stage I patients. This is **effect heterogeneity**: one treatment, very different benefits.
-- **Right panel**: Age Q3 patients (mid-to-older adults) show the largest estimated benefit — flagging them as the key subgroup to interrogate further.
+A **Causal Forest** (NB07) estimates a personalised treatment effect (CATE) for every patient. We then introduce a new stratification by age quartile (Q1-Q4), independent of Step 1 plotting groups. Slicing by age quartile reveals a clear pattern: **only Q3 patients (~57-70 yrs) show a positive mean causal effect (+0.7 months)**; the youngest (Q1) and oldest (Q4) both have negative estimates.
 
-This heterogeneity analysis motivates the next question: *why* do Age Q3 patients benefit, and through what mechanism?
+- **Q1 (youngest)**: disease biology may respond differently; less advanced disease in this cohort
+- **Q3 sweet spot**: old enough for high-risk disease, young enough to tolerate a full chemo dose
+- **Q4 (oldest)**: benefit eroded by toxicity, dose reductions, and comorbidities
+
+This flags Age Q3 as the subgroup to interrogate further: *why* do they benefit, and through what mechanism?
 
 ---
 
@@ -39,7 +40,7 @@ This heterogeneity analysis motivates the next question: *why* do Age Q3 patient
 
 ![Subgroup mediation: Age Q3 path diagram and full comparison](results/figures/04_subgroup_mediation.png)
 
-Armed with the subgroup identified in Step 2, we re-run mediation analysis restricted to Age Q3. **Top**: mediation path diagram for Age Q3 patients (aged ~57–70). **Bottom**: all four subgroups side by side.
+Armed with the subgroup identified in Step 2, we re-run mediation analysis restricted to Age Q3. **Top**: mediation path diagram for Age Q3 patients (aged ~57-70). **Bottom**: all four age-quartile subgroups (Q1-Q4) side by side.
 
 Three things stand out:
 - **Full cohort total effect is slightly negative** — not because chemo harms, but because the most advanced patients (who get more chemo) also have worse baseline prognosis. This is **indication bias** in plain sight.
